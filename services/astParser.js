@@ -1,12 +1,26 @@
-const Parser = require('tree-sitter');
-const C = require('tree-sitter-c');
-const Python = require('tree-sitter-python');
+// Try to load tree-sitter (may not be available on serverless platforms)
+let Parser, C, Python;
+let isAvailable = false;
+
+try {
+  Parser = require('tree-sitter');
+  C = require('tree-sitter-c');
+  Python = require('tree-sitter-python');
+  isAvailable = true;
+} catch (error) {
+  // Tree-sitter not available - will provide graceful fallback
+  isAvailable = false;
+}
 
 /**
  * AST Parser for multiple languages
  */
 class ASTParser {
   constructor() {
+    if (!isAvailable) {
+      throw new Error('Tree-sitter native bindings are not available on this platform');
+    }
+    
     this.parsers = {
       c: this.createParser(C),
       cpp: this.createParser(C),
