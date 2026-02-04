@@ -87,12 +87,13 @@ class ASTParser {
   traverseAST(node, features, depth) {
     if (!node) return;
 
-    features.totalNodes++;
-    features.depth = Math.max(features.depth, depth);
+    try {
+      features.totalNodes++;
+      features.depth = Math.max(features.depth, depth);
 
-    // Count node types
-    const type = node.type;
-    features.nodeTypes[type] = (features.nodeTypes[type] || 0) + 1;
+      // Count node types
+      const type = node.type;
+      features.nodeTypes[type] = (features.nodeTypes[type] || 0) + 1;
 
     // Identify control flow structures
     if (type === 'if_statement') features.controlFlow.if_statements++;
@@ -163,15 +164,10 @@ class ASTParser {
         }
       }
     }
-  }
-
-  getFunctionName(node) {
-    const declarator = node.childForFieldName('declarator');
-    if (declarator) {
-      const identifier = declarator.childForFieldName('declarator');
-      if (identifier) {
-        return identifier.text;
-      }
+    } catch (error) {
+      console.error('Error traversing AST node:', error.message);
+      // Continue traversal despite errors
+    }
     }
     return null;
   }
