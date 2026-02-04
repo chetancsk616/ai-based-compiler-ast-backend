@@ -168,6 +168,15 @@ class ASTParser {
       console.error('Error traversing AST node:', error.message);
       // Continue traversal despite errors
     }
+  }
+
+  getFunctionName(node) {
+    const declarator = node.childForFieldName('declarator');
+    if (declarator) {
+      const identifier = declarator.childForFieldName('declarator');
+      if (identifier) {
+        return identifier.text;
+      }
     }
     return null;
   }
