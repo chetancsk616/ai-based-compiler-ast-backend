@@ -1,7 +1,7 @@
 services:
   - type: web
     name: compiler-backend
-    env: docker
+    runtime: docker
     plan: free
     dockerfilePath: ./Dockerfile
     envVars:
