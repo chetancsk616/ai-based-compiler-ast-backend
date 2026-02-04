@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  compiler-backend:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PISTON_API_URL=https://emkc.org/api/v2/piston
+    restart: unless-stopped
