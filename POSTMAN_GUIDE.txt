@@ -1,0 +1,75 @@
+================================================================
+POSTMAN API TESTING GUIDE
+================================================================
+
+SERVER:
+http://localhost:3000
+
+================================================================
+ENDPOINT 1: Execute Code and Get LLVM IR
+================================================================
+Method: POST
+URL: http://localhost:3000/api/execute
+
+Headers:
+Content-Type: application/json
+
+Body (JSON):
+{
+  "language": "c",
+  "code": "int add(int a, int b) {\n    return a + b;\n}\n\nint main() {\n    return add(5, 3);\n}"
+}
+
+Expected Response:
+{
+  "success": true,
+  "language": "c",
+  "version": "10.2.0",
+  "output": {
+    "stdout": "",
+    "stderr": "",
+    "output": "",
+    "code": 8
+  },
+  "compile": null,
+  "ir": "define dso_local noundef i32 @add...",
+  "ir_type": "llvm_ir"
+}
+
+================================================================
+ENDPOINT 2: Get Available Runtimes
+================================================================
+Method: GET
+URL: http://localhost:3000/api/runtimes
+
+No body required.
+
+Expected Response:
+{
+  "success": true,
+  "runtimes": [...]
+}
+
+================================================================
+EXAMPLE: C++ Code
+================================================================
+Method: POST
+URL: http://localhost:3000/api/execute
+
+Body:
+{
+  "language": "cpp",
+  "code": "#include <iostream>\n\nint square(int x) {\n    return x * x;\n}\n\nint main() {\n    return square(5);\n}"
+}
+
+================================================================
+EXAMPLE: Compare Two Programs
+================================================================
+You need to:
+1. Get LLVM IR for Program A (POST /api/execute with code A)
+2. Get LLVM IR for Program B (POST /api/execute with code B)
+3. Use the TAC converter and comparer on both IR outputs
+
+The server returns IR directly in the response.
+
+================================================================
