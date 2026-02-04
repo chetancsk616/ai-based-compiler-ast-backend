@@ -176,7 +176,8 @@ app.post('/api/compare', async (req, res) => {
     } else {
       astComparison = {
         available: false,
-        message: "AST analysis requires native bindings. Use TAC-based comparison or deploy locally for full AST support."
+        message: "AST parsing unavailable - native bindings not supported in serverless environment. Deploy with Docker or run locally for AST analysis.",
+        timestamp: new Date().toISOString()
       };
     }
 
