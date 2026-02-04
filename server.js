@@ -4,8 +4,18 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { executeCode, getRuntimes } = require('./services/pistonService');
 const { LLVMToTACConverter } = require('./services/llvmToTAC');
-const { ASTParser } = require('./services/astParser');
-const { ASTComparer } = require('./services/astComparer');
+
+// Try to load AST parsers (may fail on serverless platforms)
+let ASTParser, ASTComparer, astAvailable = false;
+try {
+  ASTParser = require('./services/astParser').ASTParser;
+  ASTComparer = require('./services/astComparer').ASTComparer;
+  astAvailable = true;
+  console.log('✓ AST parsing available');
+} catch (error) {
+  console.log('⚠ AST parsing unavailable (native bindings not supported on this platform)');
+  console.log('  TAC-based comparison will still work.');
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -142,25 +152,31 @@ app.post('/api/compare', async (req, res) => {
       resultB.tac || []
     );
 
-    // AST-based comparison
+    // AST-based comparison (only if available)
     let astComparison = null;
-    try {
-      const astParser = new ASTParser();
-      const astComparer = new ASTComparer();
+    if (astAvailable) {
+      try {
+        const astParser = new ASTParser();
+        const astComparer = new ASTComparer();
 
-      const treeA = astParser.parse(programA.language, programA.code);
-      const treeB = astParser.parse(programB.language, programB.code);
+        const treeA = astParser.parse(programA.language, programA.code);
+        const treeB = astParser.parse(programB.language, programB.code);
 
-      const featuresA = astParser.extractFeatures(treeA);
-      const featuresB = astParser.extractFeatures(treeB);
+        const featuresA = astParser.extractFeatures(treeA);
+        const featuresB = astParser.extractFeatures(treeB);
 
-      astComparison = astComparer.compare(featuresA, featuresB);
-    } catch (error) {
-      console.error('AST comparison failed:', error.message);
-      console.error('Stack:', error.stack);
-      astComparison = { 
-        error: error.message,
-        note: "AST parsing requires native bindings which may not work on serverless platforms. Use local deployment for full AST analysis."
+        astComparison = astComparer.compare(featuresA, featuresB);
+      } catch (error) {
+        console.error('AST comparison failed:', error.message);
+        astComparison = { 
+          error: error.message,
+          available: false
+        };
+      }
+    } else {
+      astComparison = {
+        available: false,
+        message: "AST analysis requires native bindings. Use TAC-based comparison or deploy locally for full AST support."
       };
     }
 

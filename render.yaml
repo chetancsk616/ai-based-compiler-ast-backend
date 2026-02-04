@@ -3,7 +3,7 @@ services:
     name: compiler-backend
     env: node
     plan: free
-    buildCommand: npm install --legacy-peer-deps && npm rebuild tree-sitter tree-sitter-c tree-sitter-python
+    buildCommand: npm install --legacy-peer-deps
     startCommand: npm start
     envVars:
       - key: NODE_ENV
