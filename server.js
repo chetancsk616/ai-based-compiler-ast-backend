@@ -2,20 +2,22 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const axios = require('axios');
 const { executeCode, getRuntimes } = require('./services/pistonService');
 const { LLVMToTACConverter } = require('./services/llvmToTAC');
 
-// Try to load AST parsers (may fail on serverless platforms)
+// Try to load AST parsers (may not be available on serverless platforms)
 let ASTParser, ASTComparer, astAvailable = false;
 try {
   ASTParser = require('./services/astParser').ASTParser;
   ASTComparer = require('./services/astComparer').ASTComparer;
   astAvailable = true;
-  console.log('✓ AST parsing available');
+  console.log('✓ AST parsing available locally');
 } catch (error) {
-  console.log('⚠ AST parsing unavailable (native bindings not supported on this platform)');
-  console.log('  TAC-based comparison will still work.');
+  console.log('⚠ AST parsing unavailable locally (checking for remote AST service)');
 }
+
+const AST_SERVICE_URL = process.env.AST_SERVICE_URL || 'http://localhost:3001';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -152,9 +154,11 @@ app.post('/api/compare', async (req, res) => {
       resultB.tac || []
     );
 
-    // AST-based comparison (only if available)
+    // AST-based comparison (try local first, then remote service)
     let astComparison = null;
+    
     if (astAvailable) {
+      // Use local AST parsing
       try {
         const astParser = new ASTParser();
         const astComparer = new ASTComparer();
@@ -166,19 +170,35 @@ app.post('/api/compare', async (req, res) => {
         const featuresB = astParser.extractFeatures(treeB);
 
         astComparison = astComparer.compare(featuresA, featuresB);
+        astComparison.source = 'local';
       } catch (error) {
-        console.error('AST comparison failed:', error.message);
+        console.error('Local AST comparison failed:', error.message);
         astComparison = { 
           error: error.message,
           available: false
         };
       }
     } else {
-      astComparison = {
-        available: false,
-        message: "AST parsing unavailable - native bindings not supported in serverless environment. Deploy with Docker or run locally for AST analysis.",
-        timestamp: new Date().toISOString()
-      };
+      // Try remote AST service
+      try {
+        const response = await axios.post(`${AST_SERVICE_URL}/ast/compare`, {
+          programA: { language: programA.language, code: programA.code },
+          programB: { language: programB.language, code: programB.code }
+        }, { timeout: 10000 });
+        
+        if (response.data.success) {
+          astComparison = response.data.comparison;
+          astComparison.source = 'remote';
+          console.log('✓ AST comparison via remote service');
+        }
+      } catch (error) {
+        console.log('✗ Remote AST service unavailable');
+        astComparison = {
+          available: false,
+          message: "AST parsing unavailable - native bindings not supported in serverless environment. Deploy with Docker or run locally for AST analysis.",
+          timestamp: new Date().toISOString()
+        };
+      }
     }
 
     res.json({
