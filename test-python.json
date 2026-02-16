@@ -1,0 +1,12 @@
+{
+  "referenceCode": {
+    "language": "python",
+    "code": "def add(a, b):\n    return a + b\n\nif __name__ == \"__main__\":\n    result = add(5, 3)\n    print(result)",
+    "stdin": ""
+  },
+  "userCode": {
+    "language": "python",
+    "code": "def add(x, y):\n    result = x + y\n    return result\n\nif __name__ == \"__main__\":\n    output = add(5, 3)\n    print(output)",
+    "stdin": ""
+  }
+}

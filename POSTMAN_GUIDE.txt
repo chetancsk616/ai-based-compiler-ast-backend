@@ -6,6 +6,43 @@ SERVER:
 http://localhost:3000
 
 ================================================================
+EXECUTION MODES
+================================================================
+
+The system supports TWO execution modes:
+
+1. LOCAL EXECUTION (Default / Primary)
+   - Uses local compilers: 
+     * gcc (C)
+     * g++ (C++)
+     * python (Python)
+     * node (JavaScript)
+     * javac/java (Java)
+   - Benefits:
+     * Accurate performance measurements (no network latency)
+     * Identical code produces nearly identical times (~5-10ms variance)
+     * Faster response times
+     * Works offline
+   - Check: Response includes "execution_source": "local"
+
+2. PISTON API (Automatic Fallback)
+   - Uses remote Piston API (https://emkc.org/api/v2/piston)
+   - Activates when local compiler unavailable
+   - Note: Times include network latency (less accurate)
+   - Check: Response includes "execution_source": "piston"
+
+The system automatically detects available compilers and uses the best option.
+
+================================================================
+ENDPOINTS OVERVIEW
+================================================================
+
+IMPORTANT: This API has THREE main use cases:
+1. /api/verify   - Verify user code against reference (PRIMARY)
+2. /api/compare  - Compare two arbitrary programs
+3. /api/execute  - Execute single program
+
+================================================================
 ENDPOINT 1: Execute Code and Get LLVM IR
 ================================================================
 Method: POST
@@ -29,9 +66,11 @@ Expected Response:
     "stdout": "",
     "stderr": "",
     "output": "",
-    "code": 8
+    "code": 8,
+    "signal": null
   },
   "compile": null,
+  "execution_time": 2.53,
   "ir": "define dso_local noundef i32 @add...",
   "ir_type": "llvm_ir"
 }
@@ -63,13 +102,369 @@ Body:
 }
 
 ================================================================
-EXAMPLE: Compare Two Programs
+EXAMPLE: Python Code
 ================================================================
-You need to:
-1. Get LLVM IR for Program A (POST /api/execute with code A)
-2. Get LLVM IR for Program B (POST /api/execute with code B)
-3. Use the TAC converter and comparer on both IR outputs
+Method: POST
+URL: http://localhost:3000/api/execute
 
-The server returns IR directly in the response.
+Body:
+{
+  "language": "python",
+  "code": "def square(x):\n    return x * x\n\nif __name__ == \"__main__\":\n    print(square(5))"
+}
+
+================================================================
+EXAMPLE: JavaScript Code
+================================================================
+Method: POST
+URL: http://localhost:3000/api/execute
+
+Body:
+{
+  "language": "javascript",
+  "code": "function square(x) {\n    return x * x;\n}\n\nconsole.log(square(5));"
+}
+
+================================================================
+EXAMPLE: Java Code
+================================================================
+Method: POST
+URL: http://localhost:3000/api/execute
+
+Body:
+{
+  "language": "java",
+  "code": "public class Main {\n    public static int square(int x) {\n        return x * x;\n    }\n    \n    public static void main(String[] args) {\n        System.out.println(square(5));\n    }\n}"
+}
+
+================================================================
+ENDPOINT 3: Verify User Code Against Reference (PRIMARY USE)
+================================================================
+Method: POST
+URL: http://localhost:3000/api/verify
+
+Headers:
+Content-Type: application/json
+
+Body (JSON):
+{
+  "referenceCode": {
+    "language": "c",
+    "code": "int add(int a, int b) {\n    return a + b;\n}\n\nint main() {\n    return add(5, 3);\n}"
+  },
+  "userCode": {
+    "language": "c",
+    "code": "int add(int x, int y) {\n    int result = x + y;\n    return result;\n}\n\nint main() {\n    return add(5, 3);\n}"
+  }
+}
+
+Expected Response (CORRECT):
+{
+  "success": true,
+  "verdict": "CORRECT",
+  "efficiency_rating": "GOOD",
+  "analysis": {
+    "1_logic_correctness": {
+      "output_match": true,
+      "exit_code_match": true,
+      "passed": true,
+      "reference_output": "",
+      "user_output": "",
+      "reference_exit_code": 8,
+      "user_exit_code": 8
+    },
+    "2_code_efficiency": {
+      "similarity": 86,
+      "level": "VERY_SIMILAR",
+      "user_instructions": 7,
+      "reference_instructions": 6,
+      "instruction_difference": 1
+    },
+    "3_structural_similarity": {
+      "overall_similarity": 92,
+      "similarity_level": "VERY_SIMILAR"
+    },
+    "4_performance": {
+      "user_faster": true,
+      "reference_time": 1.51,
+      "user_time": 0.50,
+      "time_difference": 1.01
+    }
+  }
+}
+
+Expected Response (INCORRECT):
+{
+  "success": true,
+  "verdict": "INCORRECT",
+  "logic_correctness": {
+    "passed": false,
+    "output_match": false,
+    "reference_output": "8",
+    "user_output": "9",
+    "reference_exit_code": 9,
+    "user_exit_code": 9
+  },
+  "message": "User code produces different output than reference solution"
+}
+
+================================================================
+ENDPOINT 4: Compare Two Programs (General Comparison)
+================================================================
+Method: POST
+URL: http://localhost:3000/api/compare
+
+NOTE: Use /api/verify for reference vs user code comparison.
+      Use /api/compare for comparing any two arbitrary programs.
+
+Headers:
+Content-Type: application/json
+
+Body (JSON):
+{
+  "programA": {
+    "language": "c",
+    "code": "int add(int a, int b) {\n    return a + b;\n}\n\nint main() {\n    return add(5, 3);\n}"
+  },
+  "programB": {
+    "language": "c",
+    "code": "int add(int x, int y) {\n    int result = x + y;\n    return result;\n}\n\nint main() {\n    return add(5, 3);\n}"
+  }
+}
+
+Expected Response:
+{
+  "success": true,
+  "programA": {
+    "language": "c",
+    "instruction_count": 15,
+    "tac": [...],
+    "execution_time": 2.53
+  },
+  "programB": {
+    "language": "c",
+    "instruction_count": 16,
+    "tac": [...],
+    "execution_time": 2.61
+  },
+  "comparison": {
+    "tac_based": {
+      "identical": false,
+      "similarity": 0.95,
+      "instruction_diff": 1,
+      "details": "..."
+    },
+    "ast_based": {
+      "similarity": 0.98,
+      "structure_match": true,
+      "function_count_diff": 0,
+      "control_flow_match": true,
+      "source": "local"
+    },
+    "performance": {
+      "faster": "A",
+      "timeA": 2.53,
+      "timeB": 2.61,
+      "difference": "0.08",
+      "percentage_faster": "3.07"
+    }
+  }
+}
+
+================================================================
+EXAMPLE: Different Logic Programs
+================================================================
+Method: POST
+URL: http://localhost:3000/api/compare
+
+Body:
+{
+  "programA": {
+    "language": "c",
+    "code": "int factorial(int n) {\n    if (n <= 1) return 1;\n    return n * factorial(n - 1);\n}\n\nint main() {\n    return factorial(5);\n}"
+  },
+  "programB": {
+    "language": "c",
+    "code": "int factorial(int n) {\n    int result = 1;\n    for (int i = 2; i <= n; i++) {\n        result *= i;\n    }\n    return result;\n}\n\nint main() {\n    return factorial(5);\n}"
+  }
+}
+
+This compares recursive vs iterative implementations of factorial.
+
+================================================================
+VERIFICATION ANALYSIS EXPLAINED
+================================================================
+
+The /api/verify endpoint performs 4-LAYER ANALYSIS in priority order:
+
+LAYER 1: LOGIC CORRECTNESS (PRIMARY - FAIL FAST)
+  ├─ Compares actual program output (stdout)
+  ├─ Compares exit codes
+  └─ If INCORRECT → stops here and returns failure
+
+LAYER 2: CODE EFFICIENCY (TAC-Based)
+  ├─ Analyzes LLVM instruction count
+  ├─ Compares operation complexity
+  └─ Rating: OPTIMAL / GOOD / MODERATE / INEFFICIENT
+
+LAYER 3: STRUCTURAL SIMILARITY (AST-Based)
+  ├─ Compares syntax tree structure
+  ├─ Analyzes control flow patterns
+  └─ Similarity: IDENTICAL → VERY_DIFFERENT
+
+LAYER 4: PERFORMANCE
+  ├─ Execution time comparison
+  └─ Speed difference percentage
+
+WHY THIS ORDER?
+1. No point checking efficiency if logic is wrong
+2. Logic check is fastest (string comparison)
+3. Efficiency matters after correctness
+4. Structure shows approach similarity
+5. Performance shows real-world speed
+
+================================================================
+EXAMPLE: Wrong Answer (Logic Error)
+================================================================
+Method: POST
+URL: http://localhost:3000/api/verify
+
+Body:
+{
+  "referenceCode": {
+    "language": "c",
+    "code": "int add(int a, int b) { return a + b; }\nint main() { return add(5, 3); }"
+  },
+  "userCode": {
+    "language": "c",
+    "code": "int add(int a, int b) { return a - b; }\nint main() { return add(5, 3); }"
+  }
+}
+
+Response: INCORRECT - Analysis stops at Layer 1
+
+================================================================
+EXAMPLE: Correct but Inefficient
+================================================================
+Method: POST
+URL: http://localhost:3000/api/verify
+
+Body:
+{
+  "referenceCode": {
+    "language": "c",
+    "code": "int sum(int n) {\n    return n * (n + 1) / 2;\n}\n\nint main() {\n    return sum(100);\n}"
+  },
+  "userCode": {
+    "language": "c",
+    "code": "int sum(int n) {\n    int total = 0;\n    for (int i = 1; i <= n; i++) {\n        total += i;\n    }\n    return total;\n}\n\nint main() {\n    return sum(100);\n}"
+  }
+}
+
+Response: CORRECT but efficiency_rating = INEFFICIENT
+User used O(n) loop vs O(1) formula
+
+================================================================
+The comparison endpoint provides three types of analysis:
+
+1. TAC-BASED (Code Efficiency):
+   - "better": Which program has FEWER instructions
+   - Based on Three-Address Code instruction count
+   - Lower instruction count = more efficient code generation
+
+2. AST-BASED (Structural Similarity):
+   - Analyzes abstract syntax tree structure
+   - Measures logical similarity regardless of implementation
+   - Useful for detecting plagiarism or code equivalence
+
+3. PERFORMANCE (Execution Speed):
+   - "faster": Which program EXECUTED faster
+   - Based on actual execution time measurement
+   - Includes compilation + runtime
+   - Note: Includes network latency (unavoidable with remote API)
+
+IMPORTANT: A program can be "better" in code efficiency (fewer instructions)
+but "slower" in execution due to other factors like algorithm complexity,
+compiler optimizations, or runtime conditions.
+
+Example:
+- Program A: 6 instructions, 1.51 seconds → Better code, slower execution
+- Program B: 7 instructions, 0.50 seconds → More code, faster execution
+
+================================================================
+EXECUTION TIME
+================================================================
+All endpoints include execution timing in seconds (2 decimal accuracy):
+
+- `execution_time`: Time in seconds (e.g., 2.53 means 2.53 seconds)
+
+This measurement includes:
+  • Compilation time (for compiled languages like C/C++)
+  • Program execution time
+  • Piston API processing overhead
+  • Network latency (unavoidable with remote API)
+
+Note: Since Piston is a remote API service, true execution time without
+network latency cannot be separated. The timing represents end-to-end
+performance which is the most realistic metric for remote code execution.
+
+Typical execution_time ranges:
+- Simple C/C++ programs: 0.20 - 3.00 seconds
+- Simple Python/JavaScript: 0.10 - 2.00 seconds
+- Complex programs: May exceed 3.00 seconds
+
+For comparing performance, the comparison endpoint measures both programs
+sequentially, so relative performance differences are meaningful.
+
+================================================================
+WHICH ENDPOINT TO USE?
+================================================================
+
+┌─────────────────────────────────────────────────────────────┐
+│ SCENARIO                          │ ENDPOINT                 │
+├─────────────────────────────────────────────────────────────┤
+│ Grade student submission          │ /api/verify              │
+│ Check if answer is correct        │ /api/verify              │
+│ Verify against known solution     │ /api/verify              │
+│ Auto-grading system              │ /api/verify              │
+│ Code submission platform         │ /api/verify              │
+├─────────────────────────────────────────────────────────────┤
+│ Compare two solutions            │ /api/compare             │
+│ Benchmark different algorithms   │ /api/compare             │
+│ No "correct" answer             │ /api/compare             │
+│ Explore code similarities       │ /api/compare             │
+├─────────────────────────────────────────────────────────────┤
+│ Just run code                   │ /api/execute             │
+│ Get LLVM IR                     │ /api/execute             │
+│ Test compilation                │ /api/execute             │
+└─────────────────────────────────────────────────────────────┘
+
+KEY DIFFERENCES:
+
+/api/verify:
+  ✓ Has reference (correct) solution
+  ✓ Returns CORRECT/INCORRECT verdict
+  ✓ Prioritizes logic correctness (fail fast)
+  ✓ Gives efficiency rating
+  ✓ Analysis numbers (1_logic, 2_efficiency, etc.)
+
+/api/compare:
+  ✓ No reference solution
+  ✓ Compares programA vs programB equally
+  ✓ No verdict (just similarity metrics)
+  ✓ Returns "better" and "faster" comparisons
+
+================================================================
+SEE ALSO
+================================================================
+For detailed explanation of the verification process, see:
+CODE_VERIFICATION_GUIDE.md
+
+This includes:
+- Complete verification flow diagram
+- Layer-by-layer analysis explanation
+- TAC and AST comparison details
+- Example scenarios and interpretations
+- Best practices and limitations
 
 ================================================================

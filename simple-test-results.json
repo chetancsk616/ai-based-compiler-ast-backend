@@ -1,0 +1,290 @@
+{
+  "genuine": {
+    "passed": 10,
+    "failed": 0,
+    "details": [
+      {
+        "id": 1,
+        "name": "add_cpp_direct",
+        "expected": "CORRECT",
+        "actual": "CORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": false
+      },
+      {
+        "id": 2,
+        "name": "add_cpp_intermediate",
+        "expected": "CORRECT",
+        "actual": "CORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": false
+      },
+      {
+        "id": 3,
+        "name": "add_cpp_separate_vars",
+        "expected": "CORRECT",
+        "actual": "CORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": false
+      },
+      {
+        "id": 4,
+        "name": "multiply_cpp_direct",
+        "expected": "CORRECT",
+        "actual": "CORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": false
+      },
+      {
+        "id": 5,
+        "name": "multiply_cpp_inline",
+        "expected": "CORRECT",
+        "actual": "CORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": false
+      },
+      {
+        "id": 6,
+        "name": "subtract_python_direct",
+        "expected": "CORRECT",
+        "actual": "CORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": false
+      },
+      {
+        "id": 7,
+        "name": "subtract_python_intermediate",
+        "expected": "CORRECT",
+        "actual": "CORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": false
+      },
+      {
+        "id": 8,
+        "name": "divide_js_direct",
+        "expected": "CORRECT",
+        "actual": "CORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": false
+      },
+      {
+        "id": 9,
+        "name": "divide_js_intermediate",
+        "expected": "CORRECT",
+        "actual": "CORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": false
+      },
+      {
+        "id": 10,
+        "name": "add_cpp_ternary",
+        "expected": "CORRECT",
+        "actual": "CORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": false
+      }
+    ]
+  },
+  "incorrect": {
+    "passed": 9,
+    "failed": 1,
+    "details": [
+      {
+        "id": 11,
+        "name": "add_wrong_op_subtract",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": true
+      },
+      {
+        "id": 12,
+        "name": "add_wrong_op_multiply",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": true
+      },
+      {
+        "id": 13,
+        "name": "add_off_by_one",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": true
+      },
+      {
+        "id": 14,
+        "name": "add_missing_operand",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": true
+      },
+      {
+        "id": 15,
+        "name": "multiply_wrong_op_add",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": true
+      },
+      {
+        "id": 16,
+        "name": "subtract_swapped",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": true
+      },
+      {
+        "id": 17,
+        "name": "subtract_wrong_op",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": true
+      },
+      {
+        "id": 18,
+        "name": "divide_wrong_formula",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": true
+      },
+      {
+        "id": 19,
+        "name": "divide_no_floor",
+        "expected": "INCORRECT",
+        "actual": "CORRECT",
+        "passed": false,
+        "aiUsed": false,
+        "tacUsed": false
+      },
+      {
+        "id": 20,
+        "name": "add_double_operand",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": true
+      }
+    ]
+  },
+  "cheating": {
+    "passed": 3,
+    "failed": 7,
+    "details": [
+      {
+        "id": 21,
+        "name": "add_hardcoded",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": true
+      },
+      {
+        "id": 22,
+        "name": "add_conditional_hardcoding",
+        "expected": "INCORRECT",
+        "actual": "CORRECT",
+        "passed": false,
+        "aiUsed": false,
+        "tacUsed": false
+      },
+      {
+        "id": 23,
+        "name": "multiply_hardcoded",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": true
+      },
+      {
+        "id": 24,
+        "name": "multiply_conditional",
+        "expected": "INCORRECT",
+        "actual": "CORRECT",
+        "passed": false,
+        "aiUsed": false,
+        "tacUsed": false
+      },
+      {
+        "id": 25,
+        "name": "subtract_hardcoded",
+        "expected": "INCORRECT",
+        "actual": "CORRECT",
+        "passed": false,
+        "aiUsed": false,
+        "tacUsed": false
+      },
+      {
+        "id": 26,
+        "name": "subtract_conditional",
+        "expected": "INCORRECT",
+        "actual": "CORRECT",
+        "passed": false,
+        "aiUsed": false,
+        "tacUsed": false
+      },
+      {
+        "id": 27,
+        "name": "divide_hardcoded",
+        "expected": "INCORRECT",
+        "actual": "CORRECT",
+        "passed": false,
+        "aiUsed": false,
+        "tacUsed": false
+      },
+      {
+        "id": 28,
+        "name": "divide_output_manipulation",
+        "expected": "INCORRECT",
+        "actual": "CORRECT",
+        "passed": false,
+        "aiUsed": false,
+        "tacUsed": false
+      },
+      {
+        "id": 29,
+        "name": "add_print_manipulation",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "tacUsed": true
+      },
+      {
+        "id": 30,
+        "name": "multiply_lookup_table",
+        "expected": "INCORRECT",
+        "actual": "CORRECT",
+        "passed": false,
+        "aiUsed": false,
+        "tacUsed": false
+      }
+    ]
+  }
+}

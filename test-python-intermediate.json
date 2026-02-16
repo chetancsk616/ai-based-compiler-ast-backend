@@ -1,0 +1,12 @@
+{
+  "referenceCode": {
+    "language": "python",
+    "code": "def multiply(a, b):\n    return a * b\n\nif __name__ == \"__main__\":\n    print(multiply(4, 5))",
+    "stdin": ""
+  },
+  "userCode": {
+    "language": "python",
+    "code": "def multiply(x, y):\n    result = x * y\n    return result\n\nif __name__ == \"__main__\":\n    answer = multiply(4, 5)\n    print(answer)",
+    "stdin": ""
+  }
+}

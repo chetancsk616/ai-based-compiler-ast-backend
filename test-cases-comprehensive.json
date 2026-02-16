@@ -1,0 +1,154 @@
+{
+  "problem": "Add Two Numbers",
+  "description": "Implement a function that adds two integers",
+  "reference_code": {
+    "language": "c",
+    "code": "int add(int a, int b) {\n    return a + b;\n}\n\nint main() {\n    int x, y;\n    scanf(\"%d %d\", &x, &y);\n    printf(\"%d\", add(x, y));\n    return 0;\n}"
+  },
+  "test_cases": [
+    {
+      "id": 1,
+      "name": "Basic Addition",
+      "stdin": "5 3",
+      "expected_output": "8",
+      "description": "Standard positive numbers"
+    },
+    {
+      "id": 2,
+      "name": "Commutative Test",
+      "stdin": "3 5",
+      "expected_output": "8",
+      "description": "CRITICAL: Catches if (a==5 && b==3) type hardcoding"
+    },
+    {
+      "id": 3,
+      "name": "Different Numbers",
+      "stdin": "10 20",
+      "expected_output": "30",
+      "description": "Different input entirely"
+    },
+    {
+      "id": 4,
+      "name": "Zero Addition",
+      "stdin": "0 0",
+      "expected_output": "0",
+      "description": "Edge case: both zeros"
+    },
+    {
+      "id": 5,
+      "name": "Zero Plus Number",
+      "stdin": "0 7",
+      "expected_output": "7",
+      "description": "Identity element test"
+    },
+    {
+      "id": 6,
+      "name": "Number Plus Zero",
+      "stdin": "15 0",
+      "expected_output": "15",
+      "description": "Identity element commutative"
+    },
+    {
+      "id": 7,
+      "name": "Negative Numbers",
+      "stdin": "-5 -3",
+      "expected_output": "-8",
+      "description": "Both negative"
+    },
+    {
+      "id": 8,
+      "name": "Positive and Negative",
+      "stdin": "5 -3",
+      "expected_output": "2",
+      "description": "Mixed signs (subtraction effectively)"
+    },
+    {
+      "id": 9,
+      "name": "Negative and Positive",
+      "stdin": "-5 3",
+      "expected_output": "-2",
+      "description": "Mixed signs commutative"
+    },
+    {
+      "id": 10,
+      "name": "Large Numbers",
+      "stdin": "1000 2000",
+      "expected_output": "3000",
+      "description": "Large positive values"
+    },
+    {
+      "id": 11,
+      "name": "Same Numbers",
+      "stdin": "7 7",
+      "expected_output": "14",
+      "description": "Identical inputs"
+    },
+    {
+      "id": 12,
+      "name": "One Plus One",
+      "stdin": "1 1",
+      "expected_output": "2",
+      "description": "Smallest positive identical"
+    },
+    {
+      "id": 13,
+      "name": "Large Negative",
+      "stdin": "-1000 -2000",
+      "expected_output": "-3000",
+      "description": "Large negative values"
+    },
+    {
+      "id": 14,
+      "name": "Cancel to Zero",
+      "stdin": "100 -100",
+      "expected_output": "0",
+      "description": "Additive inverses"
+    },
+    {
+      "id": 15,
+      "name": "Another Basic",
+      "stdin": "12 25",
+      "expected_output": "37",
+      "description": "Random positive values"
+    }
+  ],
+  "cheating_patterns_caught": [
+    {
+      "pattern": "if (a==5 && b==3) return 8; else return 0;",
+      "fails_on": ["Test 2 (3,5)", "Test 3 (10,20)", "Test 4 (0,0)", "Test 7 (-5,-3)", "etc."],
+      "reason": "Only works for exact input (5,3)"
+    },
+    {
+      "pattern": "return 8;",
+      "fails_on": "TAC Logic Check + Test 2,3,4,5,6,7,8,9,10,11,12,13,14,15",
+      "reason": "Hardcoded constant - caught by TAC comparison"
+    },
+    {
+      "pattern": "if (a==5) return 8; else return a+b;",
+      "fails_on": ["Test 1 (5,3) passes", "Test 2 (3,5) fails - returns 8 not 8"],
+      "reason": "Partial hardcoding detected by inconsistent behavior"
+    },
+    {
+      "pattern": "return a;",
+      "fails_on": ["TAC Logic Check (missing ADD)", "All tests except Test 5,6"],
+      "reason": "Ignores parameter b"
+    },
+    {
+      "pattern": "return b;",
+      "fails_on": ["TAC Logic Check (missing ADD)", "All tests except Test 5,6"],
+      "reason": "Ignores parameter a"
+    },
+    {
+      "pattern": "if (a+b==8) return 8; else return 0;",
+      "fails_on": ["Test 3 (10,20)->30", "Test 10 (1000,2000)->3000"],
+      "reason": "Output-specific conditional"
+    }
+  ],
+  "usage_notes": [
+    "Run ALL test cases in sequence",
+    "FAIL the submission if ANY test case fails",
+    "TAC Logic Check runs BEFORE output tests",
+    "15 test cases provide 15 opportunities to catch cheating",
+    "Commutative tests (Test 2) are CRITICAL for conditional hardcoding"
+  ]
+}

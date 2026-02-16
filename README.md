@@ -1,21 +1,53 @@
-# Code Execution Backend
+# Code Execution and Verification Backend
 
-A Node.js backend API for executing code in Python, C, C++, and Java using the Piston API.
+A Node.js backend API for executing and verifying code in Python, C, C++, and JavaScript with local execution support and Piston API fallback.
 
 ## Features
 
-- Execute code in multiple languages: Python, C, C++, Java
+- **Local Code Execution** (Primary)
+  - Uses local compilers/interpreters for accurate performance measurements
+  - Supports: C (gcc), C++ (g++), Python (python), JavaScript (node), Java (javac/java)
+  - No network latency - consistent execution times
+  - Automatic fallback to Piston API if local tools unavailable
+
+- **Piston API Integration** (Fallback)
+  - Remote code execution when local compilers not available
+  - Supports multiple language versions
+
+- **4-Layer Code Verification**
+  - Logic correctness (primary check)
+  - Code efficiency analysis (TAC-based)
+  - Structural similarity (AST-based)
+  - Performance comparison
+
+- **3-Address Code (TAC) Analysis**
+  - LLVM IR to TAC conversion
+  - Instruction counting
+  - Operation complexity analysis
+
+- **Abstract Syntax Tree (AST) Analysis**
+  - Tree-sitter based parsing (v0.21.x)
+  - Supports: C, C++, Python, JavaScript, Java
+  - Structural comparison
+  - Control flow analysis
+
 - RESTful API endpoints
 - Built with Express.js
-- Easy to deploy
 - CORS enabled
 - Security headers with Helmet
-- Error handling
 
 ## Prerequisites
 
 - Node.js (v14 or higher)
 - npm or yarn
+
+### Optional (for local execution):
+- **C/C++**: gcc, g++ (MinGW on Windows, gcc on Linux/Mac)
+- **Python**: Python 3.x
+- **JavaScript**: Node.js (already required)
+- **Java**: JDK 8+ (javac and java)
+
+Without these, the system will automatically fall back to Piston API.
 
 ## Installation
 

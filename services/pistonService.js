@@ -1,8 +1,13 @@
 const axios = require('axios');
 const { LLVMToTACConverter } = require('./llvmToTAC');
 const { SimpleIRExtractor } = require('./simpleIRExtractor');
+const { LocalExecutor } = require('./localExecutor');
 
 const PISTON_API_URL = process.env.PISTON_API_URL || 'https://emkc.org/api/v2/piston';
+const USE_LOCAL_EXECUTION = process.env.USE_LOCAL_EXECUTION !== 'false'; // Default to true
+
+// Initialize local executor
+const localExecutor = new LocalExecutor();
 
 // Language version mappings
 const LANGUAGE_CONFIG = {
@@ -42,14 +47,87 @@ async function getRuntimes() {
 }
 
 /**
- * Execute code using Piston API
+ * Extract TAC from code using Compiler Explorer API (SEPARATE FROM EXECUTION)
+ * @param {string} language - Programming language
+ * @param {string} code - Source code
+ * @returns {Object} TAC extraction result
+ */
+async function extractTAC(language, code) {
+  try {
+    const langConfig = LANGUAGE_CONFIG[language.toLowerCase()];
+    if (!langConfig) {
+      return { success: false, error: `Unsupported language: ${language}` };
+    }
+
+    // Only extract TAC for C/C++
+    if (!['c', 'c++'].includes(langConfig.language)) {
+      return {
+        success: true,
+        tac: [],
+        tac_raw: [],
+        instruction_count: 0,
+        ir: null,
+        ir_type: 'not_applicable',
+        note: `TAC extraction only supported for C/C++`
+      };
+    }
+
+    console.log(`[TAC Extraction] Using Compiler Explorer API for ${language}...`);
+    const startTime = Date.now();
+
+    // Extract LLVM IR from Compiler Explorer
+    const irExtractor = new SimpleIRExtractor();
+    const ir = await irExtractor.extract(langConfig.language, code);
+
+    // Check if IR extraction succeeded
+    if (!ir || ir.includes('; Error:') || ir.includes('; Compilation failed')) {
+      return {
+        success: false,
+        error: 'LLVM IR extraction failed',
+        ir: ir,
+        tac: [],
+        instruction_count: 0
+      };
+    }
+
+    // Convert IR to TAC
+    const converter = new LLVMToTACConverter();
+    const tacRaw = converter.convert(ir);
+    const tacFiltered = converter.filter(tacRaw);
+    const instructionCount = converter.count(tacFiltered);
+
+    const extractionTime = ((Date.now() - startTime) / 1000).toFixed(3);
+    console.log(`✓ TAC extracted in ${extractionTime}s (${instructionCount} instructions)`);
+
+    return {
+      success: true,
+      tac: tacFiltered,
+      tac_raw: tacRaw,
+      instruction_count: instructionCount,
+      ir: ir,
+      ir_type: 'llvm_ir',
+      extraction_time: parseFloat(extractionTime),
+      source: 'compiler_explorer'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: `TAC extraction failed: ${error.message}`,
+      tac: [],
+      instruction_count: 0
+    };
+  }
+}
+
+/**
+ * Execute code using local executor (primary) with Piston API fallback
+ * NOW SIMPLIFIED - ONLY EXECUTES, DOESN'T GENERATE TAC
  * @param {string} language - Programming language (python, c, cpp, java)
  * @param {string} code - Source code to execute
  * @param {string} stdin - Standard input (optional)
  * @param {array} args - Command line arguments (optional)
- * @param {boolean} generateLLVM - Generate LLVM IR (for C/C++)
  */
-async function executeCode(language, code, stdin = '', args = [], generateLLVM = true) {
+async function executeCode(language, code, stdin = '', args = []) {
   try {
     // Get language configuration
     const langConfig = LANGUAGE_CONFIG[language.toLowerCase()];
@@ -61,101 +139,90 @@ async function executeCode(language, code, stdin = '', args = [], generateLLVM =
       };
     }
 
-    // First, execute the code normally
-    const pistonLang = PISTON_LANGUAGE_MAP[langConfig.language] || langConfig.language;
-    
-    const payload = {
-      language: pistonLang,
-      version: langConfig.version,
-      files: [
-        {
-          name: getFileName(language),
-          content: code
-        }
-      ],
-      stdin: stdin,
-      args: args,
-      compile_timeout: 10000,
-      run_timeout: 3000,
-      compile_memory_limit: -1,
-      run_memory_limit: -1
-    };
+    let executionResult = null;
+    let executionSource = 'piston'; // Default to Piston API
 
-    // Make request to Piston API
-    const response = await axios.post(`${PISTON_API_URL}/execute`, payload, {
-      headers: {
-        'Content-Type': 'application/json'
+    // TRY LOCAL EXECUTION FIRST
+    if (USE_LOCAL_EXECUTION) {
+      const localResult = await localExecutor.execute(language, code, stdin);
+      
+      if (localResult.success) {
+        // Local execution succeeded
+        executionResult = {
+          stdout: localResult.stdout,
+          stderr: localResult.stderr,
+          code: localResult.exit_code,
+          execution_time: localResult.execution_time
+        };
+        executionSource = 'local';
+        console.log(`✓ Local execution successful (${language}): ${localResult.execution_time}s`);
+      } else if (localResult.fallback_needed) {
+        // Local execution failed, fall back to Piston
+        console.log(`⚠ Local execution failed, falling back to Piston API: ${localResult.error}`);
       }
-    });
+    }
 
-    // Format the response
+    // FALLBACK TO PISTON API if local execution didn't succeed
+    if (!executionResult) {
+      const pistonLang = PISTON_LANGUAGE_MAP[langConfig.language] || langConfig.language;
+      
+      const payload = {
+        language: pistonLang,
+        version: langConfig.version,
+        files: [
+          {
+            name: getFileName(language),
+            content: code
+          }
+        ],
+        stdin: stdin,
+        args: args,
+        compile_timeout: 10000,
+        run_timeout: 3000,
+        compile_memory_limit: -1,
+        run_memory_limit: -1
+      };
+
+      // Make request to Piston API and measure execution time
+      const startTime = Date.now();
+      const response = await axios.post(`${PISTON_API_URL}/execute`, payload, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      const endTime = Date.now();
+      const totalTimeMs = endTime - startTime;
+      const totalTimeSec = (totalTimeMs / 1000).toFixed(2);
+
+      executionResult = {
+        stdout: response.data.run?.stdout || '',
+        stderr: response.data.run?.stderr || '',
+        code: response.data.run?.code || 0,
+        execution_time: parseFloat(totalTimeSec),
+        compile: response.data.compile ? {
+          stdout: response.data.compile.stdout || '',
+          stderr: response.data.compile.stderr || '',
+          code: response.data.compile.code || 0
+        } : null
+      };
+      executionSource = 'piston';
+      console.log(`✓ Piston API execution successful (${language}): ${totalTimeSec}s`);
+    }
+
+    // Format the response (SIMPLIFIED - NO TAC GENERATION)
     const result = {
       success: true,
       language: langConfig.language,
-      version: response.data.version,
+      execution_source: executionSource, // 'local' or 'piston'
       output: {
-        stdout: response.data.run?.stdout || '',
-        stderr: response.data.run?.stderr || '',
-        output: response.data.run?.output || '',
-        code: response.data.run?.code || 0
+        stdout: executionResult.stdout,
+        stderr: executionResult.stderr,
+        code: executionResult.code
       },
-      compile: response.data.compile ? {
-        stdout: response.data.compile.stdout || '',
-        stderr: response.data.compile.stderr || '',
-        output: response.data.compile.output || '',
-        code: response.data.compile.code || 0
-      } : null
+      compile: executionResult.compile || null,
+      // Execution timing (in seconds with 2 decimal accuracy)
+      execution_time: executionResult.execution_time
     };
-
-    // Generate IR for all supported languages
-    let ir = null;
-    let irType = null;
-    
-    if (generateLLVM) {
-      const irExtractor = new SimpleIRExtractor();
-      
-      if (langConfig.language === 'llvm_ir') {
-        // Already LLVM IR
-        ir = code;
-        irType = 'llvm_ir';
-      } else {
-        // Extract IR for the language
-        ir = await irExtractor.extract(langConfig.language, code);
-        
-        // Determine IR type
-        if (ir && ir.includes('define ') && (ir.includes('target triple') || ir.includes('ret '))) {
-          irType = 'llvm_ir';
-        } else if (ir && (ir.includes('BYTECODE') || ir.includes('Bytecode'))) {
-          irType = 'bytecode';
-        } else if (ir && ir.includes('AST')) {
-          irType = 'ast';
-        } else {
-          irType = 'ir_info';
-        }
-      }
-    }
-
-    // Add IR to result
-    if (ir) {
-      result.ir = ir;
-      result.ir_type = irType;
-      
-      // Add TAC conversion only for LLVM IR
-      if (irType === 'llvm_ir') {
-        try {
-          const converter = new LLVMToTACConverter();
-          const tacRaw = converter.convert(ir);
-          const tacFiltered = converter.filter(tacRaw);
-          const instructionCount = converter.count(tacFiltered);
-          
-          result.tac_raw = tacRaw;
-          result.tac = tacFiltered;
-          result.instruction_count = instructionCount;
-        } catch (error) {
-          result.tac_error = `TAC conversion failed: ${error.message}`;
-        }
-      }
-    }
 
     return result;
   } catch (error) {
@@ -279,6 +346,7 @@ function getFileName(language) {
 
 module.exports = {
   executeCode,
+  extractTAC,
   getRuntimes,
   generateLLVMIR,
   LANGUAGE_CONFIG

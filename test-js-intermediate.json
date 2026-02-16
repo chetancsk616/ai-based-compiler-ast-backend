@@ -1,0 +1,12 @@
+{
+  "referenceCode": {
+    "language": "javascript",
+    "code": "function divide(a, b) {\n    return a / b;\n}\n\nconsole.log(divide(10, 2));",
+    "stdin": ""
+  },
+  "userCode": {
+    "language": "javascript",
+    "code": "function divide(x, y) {\n    const quotient = x / y;\n    return quotient;\n}\n\nconst answer = divide(10, 2);\nconsole.log(answer);",
+    "stdin": ""
+  }
+}

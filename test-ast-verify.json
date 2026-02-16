@@ -1,0 +1,12 @@
+{
+  "referenceCode": {
+    "language": "c",
+    "code": "#include <stdio.h>\nint main() {\n    int a = 5;\n    int b = 10;\n    int sum = a + b;\n    printf(\"%d\\n\", sum);\n    return 0;\n}",
+    "stdin": ""
+  },
+  "userCode": {
+    "language": "c",
+    "code": "#include <stdio.h>\nint main() {\n    int x = 5;\n    int y = 10;\n    int result = x + y;\n    printf(\"%d\\n\", result);\n    return 0;\n}",
+    "stdin": ""
+  }
+}

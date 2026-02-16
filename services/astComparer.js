@@ -10,6 +10,14 @@ class ASTComparer {
    * @returns {Object} Comparison result
    */
   compare(featuresA, featuresB) {
+    // Validate inputs
+    if (!featuresA || !featuresB) {
+      throw new Error('Invalid features: featuresA and featuresB must be defined');
+    }
+    
+    // Ensure required properties exist with defaults
+    featuresA = this.normalizeFeatures(featuresA);
+    featuresB = this.normalizeFeatures(featuresB);
     // Calculate structural similarity
     const structuralSimilarity = this.calculateStructuralSimilarity(featuresA, featuresB);
     
@@ -156,6 +164,10 @@ class ASTComparer {
    * Calculate function similarity
    */
   calculateFunctionSimilarity(funcsA, funcsB) {
+    // Null safety
+    funcsA = funcsA || [];
+    funcsB = funcsB || [];
+    
     if (funcsA.length === 0 && funcsB.length === 0) return 100;
     
     const setA = new Set(funcsA);
@@ -163,7 +175,24 @@ class ASTComparer {
     const intersection = new Set([...setA].filter(x => setB.has(x)));
     const union = new Set([...setA, ...setB]);
 
+    if (union.size === 0) return 100;
     return (intersection.size / union.size) * 100;
+  }
+
+  /**
+   * Normalize features to ensure all required properties exist
+   */
+  normalizeFeatures(features) {
+    return {
+      totalNodes: features.totalNodes || 0,
+      depth: features.depth || 0,
+      functions: features.functions || [],
+      controlFlow: features.controlFlow || {},
+      operations: features.operations || {},
+      nodeTypes: features.nodeTypes || {},
+      functionCalls: features.functionCalls || [],
+      variableDeclarations: features.variableDeclarations || []
+    };
   }
 }
 

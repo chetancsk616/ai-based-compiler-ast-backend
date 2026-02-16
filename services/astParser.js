@@ -1,15 +1,21 @@
 // Try to load tree-sitter (may not be available on serverless platforms)
-let Parser, C, Python;
+let Parser, C, Python, Java, JavaScript;
 let isAvailable = false;
 
 try {
   Parser = require('tree-sitter');
   C = require('tree-sitter-c');
   Python = require('tree-sitter-python');
+  Java = require('tree-sitter-java');
+  JavaScript = require('tree-sitter-javascript');
+  
+  // Successfully loaded tree-sitter with compatible versions (0.21.x series)
   isAvailable = true;
+  console.log('✓ Tree-sitter AST parsing available (C, C++, Python, Java, JavaScript)');
 } catch (error) {
   // Tree-sitter not available - will provide graceful fallback
   isAvailable = false;
+  console.log('✗ Tree-sitter modules not available:', error.message);
 }
 
 /**
@@ -25,7 +31,11 @@ class ASTParser {
       c: this.createParser(C),
       cpp: this.createParser(C),
       'c++': this.createParser(C),
-      python: this.createParser(Python)
+      python: this.createParser(Python),
+      java: this.createParser(Java),
+      javascript: this.createParser(JavaScript),
+      js: this.createParser(JavaScript),
+      node: this.createParser(JavaScript)
     };
   }
 
@@ -219,4 +229,4 @@ class ASTParser {
   }
 }
 
-module.exports = { ASTParser };
+module.exports = { ASTParser, isAvailable };

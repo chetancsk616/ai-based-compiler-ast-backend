@@ -1,0 +1,12 @@
+{
+  "referenceCode": {
+    "language": "java",
+    "code": "public class Main {\n    public static int add(int a, int b) {\n        return a + b;\n    }\n    \n    public static void main(String[] args) {\n        System.exit(add(5, 3));\n    }\n}",
+    "stdin": ""
+  },
+  "userCode": {
+    "language": "java",
+    "code": "public class Main {\n    public static int add(int x, int y) {\n        int result = x + y;\n        return result;\n    }\n    \n    public static void main(String[] args) {\n        System.exit(add(5, 3));\n    }\n}",
+    "stdin": ""
+  }
+}
