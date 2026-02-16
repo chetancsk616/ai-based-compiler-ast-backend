@@ -105,7 +105,7 @@
         "expected": "INCORRECT",
         "actual": "INCORRECT",
         "passed": true,
-        "aiUsed": false,
+        "aiUsed": true,
         "tacUsed": true
       },
       {
@@ -114,7 +114,7 @@
         "expected": "INCORRECT",
         "actual": "INCORRECT",
         "passed": true,
-        "aiUsed": false,
+        "aiUsed": true,
         "tacUsed": true
       },
       {
@@ -132,7 +132,7 @@
         "expected": "INCORRECT",
         "actual": "INCORRECT",
         "passed": true,
-        "aiUsed": false,
+        "aiUsed": true,
         "tacUsed": true
       },
       {
@@ -141,7 +141,7 @@
         "expected": "INCORRECT",
         "actual": "INCORRECT",
         "passed": true,
-        "aiUsed": false,
+        "aiUsed": true,
         "tacUsed": true
       },
       {
@@ -150,7 +150,7 @@
         "expected": "INCORRECT",
         "actual": "INCORRECT",
         "passed": true,
-        "aiUsed": false,
+        "aiUsed": true,
         "tacUsed": true
       },
       {
@@ -159,7 +159,7 @@
         "expected": "INCORRECT",
         "actual": "INCORRECT",
         "passed": true,
-        "aiUsed": false,
+        "aiUsed": true,
         "tacUsed": true
       },
       {
@@ -168,7 +168,7 @@
         "expected": "INCORRECT",
         "actual": "INCORRECT",
         "passed": true,
-        "aiUsed": false,
+        "aiUsed": true,
         "tacUsed": true
       },
       {
@@ -192,8 +192,8 @@
     ]
   },
   "cheating": {
-    "passed": 3,
-    "failed": 7,
+    "passed": 7,
+    "failed": 3,
     "details": [
       {
         "id": 21,
@@ -201,7 +201,7 @@
         "expected": "INCORRECT",
         "actual": "INCORRECT",
         "passed": true,
-        "aiUsed": false,
+        "aiUsed": true,
         "tacUsed": true
       },
       {
@@ -219,7 +219,7 @@
         "expected": "INCORRECT",
         "actual": "INCORRECT",
         "passed": true,
-        "aiUsed": false,
+        "aiUsed": true,
         "tacUsed": true
       },
       {
@@ -235,37 +235,37 @@
         "id": 25,
         "name": "subtract_hardcoded",
         "expected": "INCORRECT",
-        "actual": "CORRECT",
-        "passed": false,
-        "aiUsed": false,
-        "tacUsed": false
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": true,
+        "tacUsed": true
       },
       {
         "id": 26,
         "name": "subtract_conditional",
         "expected": "INCORRECT",
-        "actual": "CORRECT",
-        "passed": false,
-        "aiUsed": false,
-        "tacUsed": false
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": true,
+        "tacUsed": true
       },
       {
         "id": 27,
         "name": "divide_hardcoded",
         "expected": "INCORRECT",
-        "actual": "CORRECT",
-        "passed": false,
-        "aiUsed": false,
-        "tacUsed": false
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": true,
+        "tacUsed": true
       },
       {
         "id": 28,
         "name": "divide_output_manipulation",
         "expected": "INCORRECT",
-        "actual": "CORRECT",
-        "passed": false,
-        "aiUsed": false,
-        "tacUsed": false
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": true,
+        "tacUsed": true
       },
       {
         "id": 29,
@@ -273,7 +273,7 @@
         "expected": "INCORRECT",
         "actual": "INCORRECT",
         "passed": true,
-        "aiUsed": false,
+        "aiUsed": true,
         "tacUsed": true
       },
       {

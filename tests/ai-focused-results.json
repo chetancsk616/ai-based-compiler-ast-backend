@@ -1,0 +1,240 @@
+{
+  "genuine": {
+    "passed": 3,
+    "failed": 0,
+    "tests": [
+      {
+        "id": 1,
+        "name": "cpp_simple_correct",
+        "expected": "CORRECT",
+        "actual": "CORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "aiVerdict": null,
+        "aiConfidence": null,
+        "aiReason": null
+      },
+      {
+        "id": 6,
+        "name": "python_simple_correct",
+        "expected": "CORRECT",
+        "actual": "CORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "aiVerdict": null,
+        "aiConfidence": null,
+        "aiReason": null
+      },
+      {
+        "id": 11,
+        "name": "js_simple_correct",
+        "expected": "CORRECT",
+        "actual": "CORRECT",
+        "passed": true,
+        "aiUsed": false,
+        "aiVerdict": null,
+        "aiConfidence": null,
+        "aiReason": null
+      }
+    ]
+  },
+  "cheating": {
+    "passed": 10,
+    "failed": 2,
+    "tests": [
+      {
+        "id": 2,
+        "name": "cpp_hardcoded_value",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": true,
+        "aiVerdict": "CHEATING",
+        "aiConfidence": 100,
+        "aiReason": "Hardcoded return value in add function"
+      },
+      {
+        "id": 3,
+        "name": "cpp_conditional_cheat",
+        "expected": "INCORRECT",
+        "actual": "CORRECT",
+        "passed": false,
+        "aiUsed": false,
+        "aiVerdict": null,
+        "aiConfidence": null,
+        "aiReason": null
+      },
+      {
+        "id": 4,
+        "name": "cpp_multiple_conditionals",
+        "expected": "INCORRECT",
+        "actual": "CORRECT",
+        "passed": false,
+        "aiUsed": false,
+        "aiVerdict": null,
+        "aiConfidence": null,
+        "aiReason": null
+      },
+      {
+        "id": 5,
+        "name": "cpp_output_manipulation",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": true,
+        "aiVerdict": "CHEATING",
+        "aiConfidence": 90,
+        "aiReason": "Hardcoded output instead of actual computation"
+      },
+      {
+        "id": 7,
+        "name": "python_hardcoded_value",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": true,
+        "aiVerdict": "CHEATING",
+        "aiConfidence": 100,
+        "aiReason": "Hardcoded return value"
+      },
+      {
+        "id": 8,
+        "name": "python_conditional_cheat",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": true,
+        "aiVerdict": "CHEATING",
+        "aiConfidence": 80,
+        "aiReason": "Conditional hardcoding detected"
+      },
+      {
+        "id": 9,
+        "name": "python_unused_params",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": true,
+        "aiVerdict": "CHEATING",
+        "aiConfidence": 100,
+        "aiReason": "Hardcoded return value"
+      },
+      {
+        "id": 10,
+        "name": "python_dict_lookup",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": true,
+        "aiVerdict": "CHEATING",
+        "aiConfidence": 80,
+        "aiReason": "User code uses hardcoded lookup table"
+      },
+      {
+        "id": 12,
+        "name": "js_hardcoded_value",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": true,
+        "aiVerdict": "CHEATING",
+        "aiConfidence": 100,
+        "aiReason": "Hardcoded return value"
+      },
+      {
+        "id": 13,
+        "name": "js_conditional_cheat",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": true,
+        "aiVerdict": "CHEATING",
+        "aiConfidence": 80,
+        "aiReason": "Conditional hardcoding detected"
+      },
+      {
+        "id": 14,
+        "name": "js_switch_case_cheat",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": true,
+        "aiVerdict": "CHEATING",
+        "aiConfidence": 80,
+        "aiReason": "User code uses conditional hardcoding for specific test cases"
+      },
+      {
+        "id": 15,
+        "name": "js_console_manipulation",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": true,
+        "aiVerdict": "CHEATING",
+        "aiConfidence": 90,
+        "aiReason": "Hardcoded return value and console log"
+      }
+    ]
+  },
+  "incorrect": {
+    "passed": 5,
+    "failed": 0,
+    "tests": [
+      {
+        "id": 16,
+        "name": "cpp_wrong_operation",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": true,
+        "aiVerdict": "CHEATING",
+        "aiConfidence": 90,
+        "aiReason": "User code performs subtraction instead of addition"
+      },
+      {
+        "id": 17,
+        "name": "python_swapped_operands",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": true,
+        "aiVerdict": "CHEATING",
+        "aiConfidence": 90,
+        "aiReason": "Incorrect subtraction logic"
+      },
+      {
+        "id": 18,
+        "name": "js_missing_operand",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": true,
+        "aiVerdict": "CHEATING",
+        "aiConfidence": 90,
+        "aiReason": "User code is missing the addition operation"
+      },
+      {
+        "id": 19,
+        "name": "cpp_off_by_one",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": true,
+        "aiVerdict": "CHEATING",
+        "aiConfidence": 90,
+        "aiReason": "Off-by-one error in multiplication function"
+      },
+      {
+        "id": 20,
+        "name": "python_wrong_operator",
+        "expected": "INCORRECT",
+        "actual": "INCORRECT",
+        "passed": true,
+        "aiUsed": true,
+        "aiVerdict": "CHEATING",
+        "aiConfidence": 90,
+        "aiReason": "User code performs addition instead of multiplication"
+      }
+    ]
+  }
+}

@@ -386,11 +386,23 @@ app.post('/api/verify', async (req, res) => {
           console.log('[STEP 1A.5] AI Confidence:', aiVerification.confidence + '%');
           console.log('[STEP 1A.5] AI Reason:', aiVerification.reason);
 
-          // If AI says it's cheating (with high confidence), override TAC result
-          if (!aiVerification.is_legitimate && aiVerification.confidence >= 70) {
-            tacLogicCheck.passed = false;
-            tacLogicCheck.reason = `AI-Verified Cheating: ${aiVerification.reason}`;
-            tacLogicCheck.ai_override = true;
+          // Strategy: Balance between auto-fail (high confidence) and flagging for review (medium confidence)
+          // - Very high confidence (≥85%): Auto-fail as INCORRECT (clear cheating)
+          // - Medium confidence (60-84%): Flag for review (suspicious, needs human judgment)
+          // - Low confidence (<60%): Trust TAC result (AI is uncertain)
+          
+          if (!aiVerification.is_legitimate) {
+            if (aiVerification.confidence >= 85) {
+              // Very high confidence cheating - auto-fail
+              tacLogicCheck.passed = false;
+              tacLogicCheck.reason = `AI-Verified Cheating (${aiVerification.confidence}% confidence): ${aiVerification.reason}`;
+              tacLogicCheck.ai_override = true;
+            } else if (aiVerification.confidence >= 60) {
+              // Medium confidence - flag for review but don't auto-fail
+              tacLogicCheck.flagged_for_review = true;
+              tacLogicCheck.review_reason = `AI detected potential cheating (${aiVerification.confidence}% confidence): ${aiVerification.reason}`;
+              console.log('[STEP 1A.5] ⚠️ FLAGGED FOR REVIEW (medium confidence)');
+            }
           }
           // If AI says it's legitimate (with high confidence), override TAC result
           else if (aiVerification.is_legitimate && aiVerification.confidence >= 80) {
@@ -436,7 +448,9 @@ app.post('/api/verify', async (req, res) => {
         operations: tacLogicCheck.tac_comparison,
         hardcoded: tacLogicCheck.hardcoded_detection,
         cached: tacLogicCheck.cache_info,
-        ai_override: tacLogicCheck.ai_override || false
+        ai_override: tacLogicCheck.ai_override || false,
+        flagged_for_review: tacLogicCheck.flagged_for_review || false, // NEW: Propagate flag from early AI check
+        review_reason: tacLogicCheck.review_reason || null // NEW: Propagate review reason
       },
       output_verification: outputCheck,
       ai_verification: aiVerification || { ai_used: false }
@@ -521,6 +535,52 @@ app.post('/api/verify', async (req, res) => {
 
     // SUCCESS: Both TAC logic and output match
     console.log('[VERDICT] CORRECT - TAC logic and output both match');
+
+    // ============================================================================
+    // STEP 1A.6: FINAL AI VERIFICATION PASS (Catch patterns TAC misses)
+    // Run AI verification even when TAC passes to catch conditional cheating
+    // ============================================================================
+    let finalAICheck = null;
+    let flaggedForReview = false;
+    let reviewReason = null;
+
+    if (!aiVerification || !aiVerification.ai_used) {
+      console.log('[STEP 1A.6] Running final AI verification pass (TAC passed without AI check)...');
+      const aiVerifier = new AIVerifier();
+      
+      if (aiVerifier.isEnabled()) {
+        try {
+          finalAICheck = await aiVerifier.verifyTACComparison({
+            referenceCode: referenceCode.code,
+            userCode: userCode.code,
+            referenceTAC: referenceResult.tac || [],
+            userTAC: userResult.tac || [],
+            referenceOperations: tacLogicCheck.tac_comparison?.reference_operations || {},
+            userOperations: tacLogicCheck.tac_comparison?.user_operations || {},
+            tacLogicResult: tacLogicCheck,
+            language: userCode.language
+          });
+
+          console.log('[STEP 1A.6] Final AI Verdict:', finalAICheck.is_legitimate ? 'LEGITIMATE' : 'SUSPICIOUS');
+          console.log('[STEP 1A.6] Final AI Confidence:', finalAICheck.confidence + '%');
+          console.log('[STEP 1A.6] Final AI Reason:', finalAICheck.reason);
+
+          // Flag for human review if AI detects potential cheating (lower threshold than auto-fail)
+          if (!finalAICheck.is_legitimate && finalAICheck.confidence >= 60) {
+            flaggedForReview = true;
+            reviewReason = `AI detected potential cheating pattern: ${finalAICheck.reason}`;
+            console.log('[STEP 1A.6] ⚠️ FLAGGED FOR REVIEW:', reviewReason);
+          }
+        } catch (error) {
+          console.error('[STEP 1A.6] Final AI verification failed:', error.message);
+          finalAICheck = { error: error.message, ai_used: false };
+        }
+      } else {
+        console.log('[STEP 1A.6] Final AI verification disabled (no API key)');
+      }
+    } else {
+      console.log('[STEP 1A.6] Skipping final AI check (AI already verified this submission)');
+    }
 
     // STEP 2: CODE EFFICIENCY COMPARISON (TAC-based)
     const tacConverter = new LLVMToTACConverter();
@@ -685,10 +745,16 @@ app.post('/api/verify', async (req, res) => {
       };
     }
 
+    // Combine flags from both early AI check and final AI check
+    const combinedFlagged = flaggedForReview || tacLogicCheck.flagged_for_review || false;
+    const combinedReviewReason = reviewReason || tacLogicCheck.review_reason || null;
+
     res.json({
       success: true,
       verdict: verdict,
       efficiency_rating: efficiency_rating,
+      flagged_for_review: combinedFlagged, // NEW: Flag suspicious cases for human review
+      review_reason: combinedReviewReason, // NEW: Reason for flagging
       vulnerability_warning: vulnerabilityAnalysis, // May be null if no vulnerabilities detected
       semantic_equivalence: semanticAnalysis ? {
         detected: semanticAnalysis.semanticallyEquivalent,
@@ -701,6 +767,14 @@ app.post('/api/verify', async (req, res) => {
         '3_structural_similarity': astAnalysis,
         '4_performance': performanceComparison
       },
+      final_ai_verification: finalAICheck ? { // NEW: Include final AI check results
+        verdict: finalAICheck.is_legitimate ? 'LEGITIMATE' : 'SUSPICIOUS',
+        confidence: finalAICheck.confidence,
+        reason: finalAICheck.reason,
+        detailed_analysis: finalAICheck.detailed_analysis,
+        cheating_indicators: finalAICheck.cheating_indicators || [],
+        recommendation: finalAICheck.recommendation
+      } : null,
       reference: {
         language: referenceResult.language,
         instruction_count: referenceResult.instruction_count,
